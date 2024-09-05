@@ -6,6 +6,7 @@ import javax.swing.*;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.concurrent.CountDownLatch;
 
 public class MedleySimulation {
 	static final int numTeams=10;
@@ -90,7 +91,7 @@ public class MedleySimulation {
 	
 //Main method - starts it all
 	public static void main(String[] args) throws InterruptedException {
-	
+	     CountDownLatch latch = new CountDownLatch(40);
 	
 	    finishLine = new FinishCounter(); //counters for people inside and outside club
 	 

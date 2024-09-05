@@ -7,6 +7,8 @@ import java.awt.Color;
 
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class Swimmer extends Thread {
@@ -17,6 +19,7 @@ public class Swimmer extends Thread {
 	GridBlock currentBlock;
 	private Random rand;
 	private int movingSpeed;
+   private final Lock lock = new ReentrantLock();
 	
 	private PeopleLocation myLocation;
 	private int ID; //thread ID 
@@ -145,10 +148,14 @@ public class Swimmer extends Thread {
 			enterStadium();	
 			
 			goToStartingBlocks();
-          					
+         
+         //latch.await();
+         //lock.tryLock();					
 			dive(); 
-			latch.await();	
+				
 			swimRace();
+         
+         //lock.unlock();
 			if(swimStroke.order==4) {
 				finish.finishRace(ID, team); // fnishline
 			}
