@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.concurrent.CountDownLatch;
-
+import java.util.concurrent.CyclicBarrier;
 public class MedleySimulation {
 	static final int numTeams=10;
 	
@@ -23,7 +23,7 @@ public class MedleySimulation {
 	static PeopleLocation [] peopleLocations;  //array to keep track of where people are
 	static StadiumView stadiumView; //threaded panel to display stadium
 	static StadiumGrid stadiumGrid; // stadium on a discrete grid
-	
+	static CyclicBarrier l = new CyclicBarrier(10);
 	static FinishCounter finishLine; //records who won
 	static CounterDisplay counterDisplay ; //threaded display of counter
 	
@@ -91,7 +91,7 @@ public class MedleySimulation {
 	
 //Main method - starts it all
 	public static void main(String[] args) throws InterruptedException {
-	     CountDownLatch latch = new CountDownLatch(40);
+	    // CountDownLatch latch = new CountDownLatch(40);
 	
 	    finishLine = new FinishCounter(); //counters for people inside and outside club
 	 

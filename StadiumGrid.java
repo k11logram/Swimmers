@@ -49,7 +49,7 @@ public class StadiumGrid {
 	
 	public synchronized int getMaxX() { return x;}
 	
-	public int getMaxY() { return y;}
+	public synchronized int getMaxY() { return y;}
 
 	public GridBlock whereEntrance() {  return entrance; }
 
@@ -67,10 +67,11 @@ public class StadiumGrid {
 	
 	
 	//a person enters the stadium
-	public GridBlock enterStadium(PeopleLocation myLocation) throws InterruptedException  {
-				while(!(entrance.get(myLocation.getID()))) {} //wait at entrace until entrance is free - spinning, not good
+	public synchronized GridBlock enterStadium(PeopleLocation myLocation) throws InterruptedException  {
+				while(!(entrance.get(myLocation.getID()))) {wait();} //wait at entrace until entrance is free - spinning, not good
 				myLocation.setLocation(entrance);
 				myLocation.setInStadium(true);
+            notifyAll();
 				return entrance;
 			
 	}
@@ -81,7 +82,7 @@ public class StadiumGrid {
 	}
 	
 //Make a one block move in a direction
-	public GridBlock moveTowards(GridBlock currentBlock,int xDir, int yDir,PeopleLocation myLocation) throws InterruptedException {  //try to move in 
+	public synchronized GridBlock moveTowards(GridBlock currentBlock,int xDir, int yDir,PeopleLocation myLocation) throws InterruptedException {  //try to move in 
 		
 		int c_x= currentBlock.getX();
 		int c_y= currentBlock.getY();
@@ -106,16 +107,17 @@ public class StadiumGrid {
 			newBlock= whichBlock(add_x+c_x,add_y+c_y);//try diagonal or y
 		
 		
-			while((!newBlock.get(myLocation.getID()))) {} //wait until block is free - but spinning is bad
+			while((!newBlock.get(myLocation.getID()))) {wait();} //wait until block is free - but spinning is bad
 			myLocation.setLocation(newBlock);		
 			currentBlock.release(); //must release current block
+         notifyAll();
 			return newBlock;
 		
 		
 	} 
 	
 	//levitate to a specific block -
-public GridBlock jumpTo(GridBlock currentBlock,int x, int y,PeopleLocation myLocation) throws InterruptedException {  
+public synchronized GridBlock jumpTo(GridBlock currentBlock,int x, int y,PeopleLocation myLocation) throws InterruptedException {  
 		//restrict i and j to grid
 		if (!inStadiumArea(x,y)) {
 			System.out.println("Invalid move");
@@ -126,9 +128,10 @@ public GridBlock jumpTo(GridBlock currentBlock,int x, int y,PeopleLocation myLoc
 		GridBlock newBlock= whichBlock(x,y);//try diagonal or y
 		
 		
-			while((!newBlock.get(myLocation.getID()))) { } //wait until block is free - but spinning, not good
+			while((!newBlock.get(myLocation.getID()))) {wait(); } //wait until block is free - but spinning, not good
 			myLocation.setLocation(newBlock);		
 			currentBlock.release(); //must release current block
+         notifyAll();
 			return newBlock;
 		
 		

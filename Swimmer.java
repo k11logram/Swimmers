@@ -6,25 +6,32 @@ package medleySimulation;
 import java.awt.Color;
 
 import java.util.Random;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Swimmer extends Thread {
 	
 	public static StadiumGrid stadium; //shared 
 	private FinishCounter finish; //shared
-	CountDownLatch latch;		
+	CountDownLatch latch= new CountDownLatch(1);
+   CountDownLatch latch2 = new CountDownLatch(1);
 	GridBlock currentBlock;
 	private Random rand;
 	private int movingSpeed;
-   private final Lock lock = new ReentrantLock();
-	
+   private final Lock lock;// = new ReentrantLock();
+	private static CountDownLatch latch3 = new CountDownLatch(1);
 	private PeopleLocation myLocation;
 	private int ID; //thread ID 
 	private int team; // team ID
 	private GridBlock start;
+   static AtomicInteger count = new AtomicInteger(0);
+   AtomicBoolean check = new AtomicBoolean(true);
 
 	public enum SwimStroke { 
 		Backstroke(1,2.5,Color.black),
@@ -47,9 +54,10 @@ public class Swimmer extends Thread {
 	        public synchronized Color getColour() { return colour; }
 	    }  
 	    private final SwimStroke swimStroke;
+       private CyclicBarrier barrier;
 	
 	//Constructor
-	Swimmer( int ID, int t, PeopleLocation loc, FinishCounter f, int speed, SwimStroke s,CountDownLatch latch) {
+	Swimmer( int ID, int t, PeopleLocation loc, FinishCounter f, int speed, SwimStroke s, Lock l,CountDownLatch latch3) {
 		this.swimStroke = s;
 		this.ID=ID;
 		movingSpeed=speed; //range of speeds for swimmers
@@ -58,7 +66,9 @@ public class Swimmer extends Thread {
 		start = stadium.returnStartingBlock(team);
 		finish=f;
 		rand=new Random();
-      this.latch=latch;
+      this.lock = l;
+      this.latch3 = latch3;
+      //this.latch=latch;
 	}
 	
 	//getter
@@ -98,11 +108,15 @@ public class Swimmer extends Thread {
 		//	System.out.println("Thread "+this.ID + " moved toward start to position: " + currentBlock.getX()  + " " +currentBlock.getY() );
 		}
 	System.out.println("-----------Thread "+this.ID + " at start " + currentBlock.getX()  + " " +currentBlock.getY() );
+   System.out.println("am here"+ID);
+   latch.countDown();
+   System.out.println("decrement count"+ID);
 	}
 	
 	//!!!You do not need to change the method below!!!
 	//dive in to the pool
 	private void dive() throws InterruptedException {
+      System.out.println("Swimmer " + ID + " passed the barrier.");
       int x= currentBlock.getX();
 		int y= currentBlock.getY();
 		currentBlock=stadium.jumpTo(currentBlock,x,y-2,myLocation);
@@ -140,22 +154,32 @@ public class Swimmer extends Thread {
 	}
 	
 	public void run() {
+      //lock.lock();
 		try {
-			
+         
+			System.out.println("Swimmer " + ID + " arriving.");
 			//Swimmer arrives
 			sleep(movingSpeed+(rand.nextInt(10))); //arriving takes a while
 			myLocation.setArrived();
-			enterStadium();	
-			
+			enterStadium();
+         latch2.countDown();	
+			//lock.unlock();
 			goToStartingBlocks();
-         
+         System.out.println("Swimmer " + ID + " outside the barrier.");	
+         //lock.unlock();	
+         	
          //latch.await();
-         //lock.tryLock();					
-			dive(); 
-				
-			swimRace();
+         if(swimStroke.order==1){
+            latch.countDown();
+            count.set(count.get()+1);}
+            latch.await();
          
-         //lock.unlock();
+         while(count.get()!=10){}
+         //latch3.await();
+			dive(); 	
+			swimRace();
+         check.set(false);
+         //latch3.countDown();
 			if(swimStroke.order==4) {
 				finish.finishRace(ID, team); // fnishline
 			}
@@ -164,10 +188,15 @@ public class Swimmer extends Thread {
 				exitPool();//if not last swimmer leave pool
 			}
 			
-		} catch (InterruptedException e1) {  //do nothing
+		} catch (InterruptedException e1) {
+        //do nothing
 		} 
-    }
-   public static void main(String[] args) {
+      finally{
+          
+          }
+    //catch(BrokenBarrierException e){}
+
+    }   public static void main(String[] args) {
         for (SwimStroke stroke : SwimStroke.values()) {
             System.out.println("Stroke: " + stroke + ", Order: " + stroke.getOrder() + ", Colour: " + stroke.getColour());
         }
