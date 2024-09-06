@@ -22,8 +22,6 @@ public class SwimTeam extends Thread {
    private CyclicBarrier l =new CyclicBarrier(sizeOfTeam);
    private Lock lock;
    private Lock lock2 = new ReentrantLock();
-   private Lock lock3 = new ReentrantLock();
-   private CountDownLatch latch3;
 
 	
 	SwimTeam( int ID, FinishCounter finish,PeopleLocation [] locArr) {
@@ -32,12 +30,12 @@ public class SwimTeam extends Thread {
 	   SwimStroke[] strokes = SwimStroke.values();  // Get all enum constants
 		stadium.returnStartingBlock(ID);
       lock =new ReentrantLock();
-      this.latch3 = new CountDownLatch(4);
 		for(int i=teamNo*sizeOfTeam,s=0;i<((teamNo+1)*sizeOfTeam); i++,s++) { //initialise swimmers in team
 			locArr[i]= new PeopleLocation(i,strokes[s].getColour());
 	      int speed=(int)(Math.random() * (3)+30); //range of speeds 
-			swimmers[s] = new Swimmer(i,teamNo,locArr[i],finish,speed,strokes[s],lock,latch3); //hardcoded speed for now
-   
+			swimmers[s] = new Swimmer(i,teamNo,locArr[i],finish,speed,strokes[s],lock,latch); //hardcoded speed for now
+         
+      
         
 		}
 	//}
@@ -54,13 +52,11 @@ public class SwimTeam extends Thread {
             lock2.unlock();
             		
 			}
-			//synchronized(this){
+			synchronized(this){
 			for(int s=0;s<sizeOfTeam-1; s++) {
-            lock3.lock();
-            while(!swimmers[s].check.get()){}
+            while(swimmers[s].check.get()){}
             swimmers[s+1].latch.countDown();
-            lock3.unlock();
-         }	//don't really need to do this;
+         }}		//don't really need to do this;
 			
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block

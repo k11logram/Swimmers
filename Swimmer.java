@@ -12,7 +12,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Swimmer extends Thread {
@@ -25,13 +24,13 @@ public class Swimmer extends Thread {
 	private Random rand;
 	private int movingSpeed;
    private final Lock lock;// = new ReentrantLock();
-	private static CountDownLatch latch3 = new CountDownLatch(1);
+	
 	private PeopleLocation myLocation;
 	private int ID; //thread ID 
 	private int team; // team ID
 	private GridBlock start;
    static AtomicInteger count = new AtomicInteger(0);
-   AtomicBoolean check = new AtomicBoolean(true);
+   
 
 	public enum SwimStroke { 
 		Backstroke(1,2.5,Color.black),
@@ -57,7 +56,7 @@ public class Swimmer extends Thread {
        private CyclicBarrier barrier;
 	
 	//Constructor
-	Swimmer( int ID, int t, PeopleLocation loc, FinishCounter f, int speed, SwimStroke s, Lock l,CountDownLatch latch3) {
+	Swimmer( int ID, int t, PeopleLocation loc, FinishCounter f, int speed, SwimStroke s, Lock l,CountDownLatch latch) {
 		this.swimStroke = s;
 		this.ID=ID;
 		movingSpeed=speed; //range of speeds for swimmers
@@ -67,8 +66,7 @@ public class Swimmer extends Thread {
 		finish=f;
 		rand=new Random();
       this.lock = l;
-      this.latch3 = latch3;
-      //this.latch=latch;
+      this.latch=latch;
 	}
 	
 	//getter
@@ -170,16 +168,15 @@ public class Swimmer extends Thread {
          	
          //latch.await();
          if(swimStroke.order==1){
-            latch.countDown();
             count.set(count.get()+1);}
+         else{
             latch.await();
-         
+         }
          while(count.get()!=10){}
-         //latch3.await();
 			dive(); 	
 			swimRace();
-         check.set(false);
-         //latch3.countDown();
+         
+
 			if(swimStroke.order==4) {
 				finish.finishRace(ID, team); // fnishline
 			}
@@ -188,8 +185,7 @@ public class Swimmer extends Thread {
 				exitPool();//if not last swimmer leave pool
 			}
 			
-		} catch (InterruptedException e1) {
-        //do nothing
+		} catch (InterruptedException e1) {  //do nothing
 		} 
       finally{
           
