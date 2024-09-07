@@ -54,7 +54,7 @@ public class SwimTeam extends Thread {
 			}
 			synchronized(this){
 			for(int s=0;s<sizeOfTeam-1; s++) {
-            while(swimmers[s].check.get()){}
+           // while(swimmers[s].check.get()){}
             swimmers[s+1].latch.countDown();
          }}		//don't really need to do this;
 			

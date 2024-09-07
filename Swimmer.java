@@ -24,6 +24,7 @@ public class Swimmer extends Thread {
 	private Random rand;
 	private int movingSpeed;
    private final Lock lock;// = new ReentrantLock();
+   private static int t =1;
 	
 	private PeopleLocation myLocation;
 	private int ID; //thread ID 
@@ -148,6 +149,8 @@ public class Swimmer extends Thread {
 	   while (currentBlock.getY()!=bench) {
 		 	currentBlock=stadium.moveTowards(currentBlock,lane,bench,myLocation);
 			sleep(movingSpeed*3);  //not rushing 
+         latch.countDown();
+         t++;
 		}
 	}
 	
@@ -167,14 +170,18 @@ public class Swimmer extends Thread {
          //lock.unlock();	
          	
          //latch.await();
-         if(swimStroke.order==1){
+         if(swimStroke.order==t){
             count.set(count.get()+1);}
+            
          else{
             latch.await();
          }
+         
          while(count.get()!=10){}
+         lock.lock();
 			dive(); 	
 			swimRace();
+         lock.unlock();
          
 
 			if(swimStroke.order==4) {
