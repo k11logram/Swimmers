@@ -23,9 +23,9 @@ public class GridBlock {
 	}
 	
    //sync these two
-	public int getX() {return coords[0];}  
+	public synchronized int getX() {return coords[0];}  
 	
-	public int getY() {return coords[1];}
+	public  synchronized int getY() {return coords[1];}
 	
 	
 	

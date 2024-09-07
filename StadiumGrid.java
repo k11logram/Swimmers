@@ -46,7 +46,7 @@ public class StadiumGrid {
 			}
 		}
 	}
-	
+	//read the most recent value from the memory.
 	public synchronized int getMaxX() { return x;}
 	
 	public synchronized int getMaxY() { return y;}
@@ -68,10 +68,10 @@ public class StadiumGrid {
 	
 	//a person enters the stadium
 	public synchronized GridBlock enterStadium(PeopleLocation myLocation) throws InterruptedException  {
-				while(!(entrance.get(myLocation.getID()))) {wait();} //wait at entrace until entrance is free - spinning, not good
+				while(!(entrance.get(myLocation.getID()))) {wait();} //wait at entrace until entrance is free
 				myLocation.setLocation(entrance);
 				myLocation.setInStadium(true);
-            notifyAll();
+            notifyAll();//notify other threds that entrance is free they can now enter.
 				return entrance;
 			
 	}
@@ -107,10 +107,10 @@ public class StadiumGrid {
 			newBlock= whichBlock(add_x+c_x,add_y+c_y);//try diagonal or y
 		
 		
-			while((!newBlock.get(myLocation.getID()))) {wait();} //wait until block is free - but spinning is bad
+			while((!newBlock.get(myLocation.getID()))) {wait();} //wait until block is free
 			myLocation.setLocation(newBlock);		
 			currentBlock.release(); //must release current block
-         notifyAll();
+         notifyAll();//tell all the threads that hte block is free.
 			return newBlock;
 		
 		
@@ -128,10 +128,10 @@ public synchronized GridBlock jumpTo(GridBlock currentBlock,int x, int y,PeopleL
 		GridBlock newBlock= whichBlock(x,y);//try diagonal or y
 		
 		
-			while((!newBlock.get(myLocation.getID()))) {wait(); } //wait until block is free - but spinning, not good
+			while((!newBlock.get(myLocation.getID()))) {wait(); } //wait until block is free
 			myLocation.setLocation(newBlock);		
 			currentBlock.release(); //must release current block
-         notifyAll();
+         notifyAll();//block is now free
 			return newBlock;
 		
 		

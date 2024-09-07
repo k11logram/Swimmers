@@ -14,6 +14,7 @@ public class FinishCounter {
 	}
 		
 	//This is called by a swimmer when they touch the fnish line
+   //synchronized because only one team can win.
 	public synchronized void finishRace(int swimmer, int team) {
 		boolean won =false;
 		if(firstAcrossLine.get()) {

@@ -9,7 +9,7 @@ import java.awt.event.ActionListener;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 public class MedleySimulation {
-	static final int numTeams=10;
+static final int numTeams=10;
 	
    	static int frameX=300; //frame width
 	static int frameY=600;  //frame height
@@ -23,7 +23,6 @@ public class MedleySimulation {
 	static PeopleLocation [] peopleLocations;  //array to keep track of where people are
 	static StadiumView stadiumView; //threaded panel to display stadium
 	static StadiumGrid stadiumGrid; // stadium on a discrete grid
-	//static CyclicBarrier l = new CyclicBarrier(10);
 	static FinishCounter finishLine; //records who won
 	static CounterDisplay counterDisplay ; //threaded display of counter
 	
@@ -59,12 +58,11 @@ public class MedleySimulation {
         JButton startB = new JButton("Start");
 		// add the listener to the jbutton to handle the "pressed" event
 		startB.addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent e)  {
-			    	  //does nothing - fix this 	
+		    public void actionPerformed(ActionEvent e)  {	
                  //start teams, which start swimmers.
       	for (int i=0;i<numTeams;i++) {
             teams[i].start();
-            //latch.await();
+          
 		}
   
 		    }
@@ -98,7 +96,7 @@ public class MedleySimulation {
 		stadiumGrid = new StadiumGrid(gridX, gridY, numTeams,finishLine); //setup stadium with size     
 		SwimTeam.stadium = stadiumGrid; //grid shared with class
 		Swimmer.stadium = stadiumGrid; //grid shared with class
-	    peopleLocations = new PeopleLocation[numTeams*SwimTeam.sizeOfTeam]; //four swimmers per team
+	   peopleLocations = new PeopleLocation[numTeams*SwimTeam.sizeOfTeam]; //four swimmers per team
 		teams = new SwimTeam[numTeams];
 		for (int i=0;i<numTeams;i++) {
         	teams[i]=new SwimTeam(i, finishLine, peopleLocations); 
@@ -113,11 +111,6 @@ public class MedleySimulation {
       	//Start counter thread - for updating results
       	Thread results = new Thread(counterDisplay);  
       	results.start();
-         
-         //       	for (int i=0;i<numTeams;i++) {
-//          //teams[i] = new SwimTeam(i, finishLine, peopleLocations);
-// 			teams[i].start();
-// 		}
-      	
+         	
     	}
 }

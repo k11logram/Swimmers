@@ -28,6 +28,7 @@ public class PeopleLocation  { // this is made a separate class so don't have to
 	}
 	
 	//getter and setter
+   //most recent value from memory
 	public boolean getArrived() {
 		return arrived;
 	}

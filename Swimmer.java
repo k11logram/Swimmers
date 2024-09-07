@@ -6,11 +6,9 @@ package medleySimulation;
 import java.awt.Color;
 
 import java.util.Random;
-import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -18,19 +16,17 @@ public class Swimmer extends Thread {
 	
 	public static StadiumGrid stadium; //shared 
 	private FinishCounter finish; //shared
-	CountDownLatch latch= new CountDownLatch(1);
-   CountDownLatch latch2 = new CountDownLatch(1);
+	CountDownLatch latch= new CountDownLatch(1);//all swimmers are in their starting positions before any swimmer begins their race.
+   CountDownLatch latch2 = new CountDownLatch(1);//ensure that each swimmer has arrived at the stadium and is ready before the SwimTeam class continues to process further actions.
 	GridBlock currentBlock;
 	private Random rand;
 	private int movingSpeed;
    private final Lock lock;// = new ReentrantLock();
-   private static int t =1;
-	
-	private PeopleLocation myLocation;
+  	private PeopleLocation myLocation;
 	private int ID; //thread ID 
 	private int team; // team ID
 	private GridBlock start;
-   static AtomicInteger count = new AtomicInteger(0);
+   static AtomicInteger count = new AtomicInteger(0);//how many black swimmers/first swimmer has arrived.
    
 
 	public enum SwimStroke { 
@@ -54,10 +50,9 @@ public class Swimmer extends Thread {
 	        public synchronized Color getColour() { return colour; }
 	    }  
 	    private final SwimStroke swimStroke;
-       private CyclicBarrier barrier;
-	
+       	
 	//Constructor
-	Swimmer( int ID, int t, PeopleLocation loc, FinishCounter f, int speed, SwimStroke s, Lock l,CountDownLatch latch) {
+	Swimmer( int ID, int t, PeopleLocation loc, FinishCounter f, int speed, SwimStroke s, Lock l) {
 		this.swimStroke = s;
 		this.ID=ID;
 		movingSpeed=speed; //range of speeds for swimmers
@@ -66,10 +61,10 @@ public class Swimmer extends Thread {
 		start = stadium.returnStartingBlock(team);
 		finish=f;
 		rand=new Random();
-      this.lock = l;
-      this.latch=latch;
+      this.lock = l;//prevent teammates swimming all at once
+
 	}
-	
+	// read the most recent value.
 	//getter
 	public synchronized  int getX() { return currentBlock.getX();}	
 	
@@ -107,9 +102,7 @@ public class Swimmer extends Thread {
 		//	System.out.println("Thread "+this.ID + " moved toward start to position: " + currentBlock.getX()  + " " +currentBlock.getY() );
 		}
 	System.out.println("-----------Thread "+this.ID + " at start " + currentBlock.getX()  + " " +currentBlock.getY() );
-   System.out.println("am here"+ID);
-   latch.countDown();
-   System.out.println("decrement count"+ID);
+  // latch.countDown();
 	}
 	
 	//!!!You do not need to change the method below!!!
@@ -149,38 +142,41 @@ public class Swimmer extends Thread {
 	   while (currentBlock.getY()!=bench) {
 		 	currentBlock=stadium.moveTowards(currentBlock,lane,bench,myLocation);
 			sleep(movingSpeed*3);  //not rushing 
-         latch.countDown();
-         t++;
+         // notify the other threads that the pool is free it's time to go 
+         latch.countDown(); 
 		}
 	}
 	
 	public void run() {
-      //lock.lock();
-		try {
-         
+		try { 
 			System.out.println("Swimmer " + ID + " arriving.");
 			//Swimmer arrives
 			sleep(movingSpeed+(rand.nextInt(10))); //arriving takes a while
 			myLocation.setArrived();
 			enterStadium();
+        // swimmers have entered the stadium the swimteam thread can continue now.
          latch2.countDown();	
-			//lock.unlock();
 			goToStartingBlocks();
-         System.out.println("Swimmer " + ID + " outside the barrier.");	
-         //lock.unlock();	
-         	
-         //latch.await();
-         if(swimStroke.order==t){
-            count.set(count.get()+1);}
-            
+         
+         /*first member of the team has arrived
+         increment until all first team members have arrived.
+         */
+        if(swimStroke.order==1){
+         count.set(count.get()+1);}
+         
+         //wait until first team meber is done simming
          else{
             latch.await();
          }
          
+         //all 10 of the first swimmers in each team have arrive and they can now swim
+         //if all of them haven't arrived wait.
          while(count.get()!=10){}
+         //only one team member can swim at a time so only one member can acquire a lock.
          lock.lock();
 			dive(); 	
 			swimRace();
+         //release the lock for other team members.
          lock.unlock();
          
 
@@ -194,15 +190,6 @@ public class Swimmer extends Thread {
 			
 		} catch (InterruptedException e1) {  //do nothing
 		} 
-      finally{
-          
-          }
-    //catch(BrokenBarrierException e){}
-
-    }   public static void main(String[] args) {
-        for (SwimStroke stroke : SwimStroke.values()) {
-            System.out.println("Stroke: " + stroke + ", Order: " + stroke.getOrder() + ", Colour: " + stroke.getColour());
-        }
-    }
-	
+     
+    }   	
 }
